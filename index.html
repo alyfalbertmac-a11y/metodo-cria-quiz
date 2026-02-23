@@ -481,72 +481,11 @@
         let userEmail = "";
         let userWhatsapp = "";
 
-        addDebug('✓ Página carregada com sucesso', 'success');
-        addDebug(`Supabase URL: ${SUPABASE_URL}`, 'info');
-        addDebug(`Supabase Key (primeiras 20 chars): ${SUPABASE_KEY.substring(0, 20)}...`, 'info');
-
-        async function testSupabaseConnection() {
-            addDebug('', 'info');
-            addDebug('📡 TESTE 1: Testando conexão com Supabase...', 'info');
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                    }
-                });
-                addDebug(`✓ Conexão com Supabase OK (Status: ${response.status})`, 'success');
-                return true;
-            } catch (error) {
-                addDebug(`❌ Erro de conexão: ${error.message}`, 'error');
-                return false;
-            }
-        }
-
-        async function testTableStructure() {
-            addDebug('', 'info');
-            addDebug('📋 TESTE 2: Verificando estrutura da tabela...', 'info');
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses?limit=0`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Accept': 'application/json'
-                    }
-                });
-                if (response.ok) {
-                    addDebug(`✓ Tabela existe e é acessível`, 'success');
-                    // Try to get column info from headers
-                    const contentRange = response.headers.get('content-range');
-                    addDebug(`Content-Range: ${contentRange}`, 'info');
-                    return true;
-                } else if (response.status === 401) {
-                    addDebug(`❌ Erro 401: Não autorizado. Verifique a API Key`, 'error');
-                    return false;
-                } else if (response.status === 404) {
-                    addDebug(`❌ Erro 404: Tabela não encontrada`, 'error');
-                    return false;
-                } else {
-                    const error = await response.text();
-                    addDebug(`❌ Erro ${response.status}: ${error}`, 'error');
-                    return false;
-                }
-            } catch (error) {
-                addDebug(`❌ Erro ao testar tabela: ${error.message}`, 'error');
-                return false;
-            }
-        }
-
         function startQuiz(e) {
             e.preventDefault();
             userName = document.getElementById("name").value;
             userEmail = document.getElementById("email").value;
             userWhatsapp = document.getElementById("whatsapp").value;
-
-            addDebug(`✓ Quiz iniciado`, 'success');
-            addDebug(`Nome: ${userName}`, 'info');
-            addDebug(`Email: ${userEmail}`, 'info');
-            addDebug(`WhatsApp: ${userWhatsapp}`, 'info');
 
             showScreen("quiz-screen");
             renderQuestion();
