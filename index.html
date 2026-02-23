@@ -543,13 +543,16 @@
         }
 
         function showTransition() {
+            console.log('showTransition chamado');
             showScreen("transition-screen");
             setTimeout(() => {
+                console.log('Chamando showEnd...');
                 showEnd();
             }, 3000);
         }
 
         async function showEnd() {
+            console.log('showEnd chamado - salvando dados...');
             document.getElementById("end-name").textContent = userName;
             showScreen("end-screen");
 
@@ -561,8 +564,10 @@
                 answers: answers
             };
 
+            console.log('Payload:', JSON.stringify(payload));
+
             try {
-                console.log('Enviando para Supabase:', payload);
+                console.log('Enviando POST para Supabase...');
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
                     method: 'POST',
                     headers: {
@@ -573,11 +578,16 @@
                     },
                     body: JSON.stringify(payload)
                 });
-                console.log('Status:', response.status);
+                console.log('Response status:', response.status);
                 const data = await response.text();
-                console.log('Resposta:', data);
+                console.log('Response data:', data);
+                if (response.ok) {
+                    console.log('✅ Dados salvos com sucesso!');
+                } else {
+                    console.log('❌ Erro ao salvar. Status:', response.status);
+                }
             } catch (error) {
-                console.error('Erro ao salvar:', error);
+                console.error('❌ Erro na requisição:', error);
             }
         }
     </script>
