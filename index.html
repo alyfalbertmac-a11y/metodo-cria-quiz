@@ -562,7 +562,8 @@
             };
 
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
+                console.log('Enviando para Supabase:', payload);
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -572,6 +573,9 @@
                     },
                     body: JSON.stringify(payload)
                 });
+                console.log('Status:', response.status);
+                const data = await response.text();
+                console.log('Resposta:', data);
             } catch (error) {
                 console.error('Erro ao salvar:', error);
             }
