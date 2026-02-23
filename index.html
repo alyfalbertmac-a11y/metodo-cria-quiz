@@ -614,28 +614,7 @@
             document.getElementById("end-name").textContent = userName;
             showScreen("end-screen");
 
-            addDebug('', 'info');
-            addDebug('═══════════════════════════════════════════', 'info');
-            addDebug('PROCESSO DE SALVAR DADOS', 'info');
-            addDebug('═══════════════════════════════════════════', 'info');
-
-            // Test connection first
-            const connected = await testSupabaseConnection();
-            if (!connected) {
-                addDebug('⚠️  Abortando: sem conexão com Supabase', 'error');
-                return;
-            }
-
-            // Test table structure
-            const tableOk = await testTableStructure();
-            if (!tableOk) {
-                addDebug('⚠️  Abortando: tabela não acessível', 'error');
-                return;
-            }
-
-            addDebug('', 'info');
-            addDebug('📤 TESTE 3: Enviando dados para Supabase...', 'info');
-
+            // Save data to Supabase
             const payload = {
                 name: userName,
                 email: userEmail,
@@ -643,15 +622,8 @@
                 answers: answers
             };
 
-            addDebug(`Dados a enviar (JSON):`, 'info');
-            addDebug(JSON.stringify(payload, null, 2), 'info');
-
             try {
-                addDebug('', 'info');
-                addDebug('Enviando POST para:', 'info');
-                addDebug(`${SUPABASE_URL}/rest/v1/quiz_responses`, 'info');
-
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
+                await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -661,51 +633,9 @@
                     },
                     body: JSON.stringify(payload)
                 });
-
-                addDebug('', 'info');
-                addDebug(`📊 Status HTTP: ${response.status}`, 'info');
-                addDebug(`Content-Type: ${response.headers.get('content-type')}`, 'info');
-
-                const responseText = await response.text();
-
-                if (response.ok) {
-                    addDebug(`✅ SUCESSO! Status 200 OK`, 'success');
-                    try {
-                        const data = JSON.parse(responseText);
-                        addDebug(`Resposta: ${JSON.stringify(data, null, 2)}`, 'success');
-                    } catch (e) {
-                        addDebug(`Resposta (texto): ${responseText}`, 'success');
-                    }
-                } else {
-                    addDebug(`❌ ERRO HTTP ${response.status}`, 'error');
-                    addDebug(`Mensagem: ${responseText}`, 'error');
-
-                    // Parse error details
-                    if (response.status === 401) {
-                        addDebug('❌ PROBLEMA: Falha de autenticação', 'error');
-                        addDebug('   - Verifique se a API Key está correta', 'warning');
-                        addDebug('   - Verifique se RLS está realmente desativado', 'warning');
-                    } else if (response.status === 403) {
-                        addDebug('❌ PROBLEMA: Acesso negado (possível RLS ativa)', 'error');
-                        addDebug('   - Execute no Supabase console:', 'warning');
-                        addDebug('   - ALTER TABLE public.quiz_responses DISABLE ROW LEVEL SECURITY;', 'warning');
-                    } else if (response.status === 404) {
-                        addDebug('❌ PROBLEMA: Tabela não encontrada', 'error');
-                        addDebug('   - Verifique se a tabela quiz_responses existe', 'warning');
-                    } else if (response.status === 400) {
-                        addDebug('❌ PROBLEMA: Dados inválidos', 'error');
-                        addDebug('   - Verifique os tipos de coluna na tabela', 'warning');
-                    }
-                }
             } catch (error) {
-                addDebug(`❌ ERRO NA REQUISIÇÃO: ${error.message}`, 'error');
-                addDebug(`Stack: ${error.stack}`, 'error');
+                console.error('Erro ao salvar:', error);
             }
-
-            addDebug('', 'info');
-            addDebug('═══════════════════════════════════════════', 'info');
-            addDebug('FIM DO DIAGNÓSTICO', 'info');
-            addDebug('═══════════════════════════════════════════', 'info');
         }
     </script>
 </body>
