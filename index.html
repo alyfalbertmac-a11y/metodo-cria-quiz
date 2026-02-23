@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método Cria Quiz - Diagnostic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .entry-screen {
+            text-align: center;
+        }
+
+        .entry-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        .entry-subheadline {
+            font-size: 18px;
+            color: #b0b0b0;
+            line-height: 1.6;
+            margin-bottom: 48px;
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #d4af37;
+            margin-bottom: 10px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: #ffffff;
+            padding: 16px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #d4af37;
+        }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37 0%, #e8c547 100%);
+            color: #000000;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 40px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+        }
+
+        .progress-container {
+            margin-bottom: 48px;
+        }
+
+        .progress-info {
+            font-size: 13px;
+            font-weight: 600;
+            color: #d4af37;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #e8c547 100%);
+            transition: width 0.4s ease;
+        }
+
+        .question-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 40px;
+            color: #ffffff;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            color: #e0e0e0;
+            padding: 18px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #d4af37;
+            transform: translateX(8px);
+        }
+
+        .option.selected {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: #d4af37;
+            color: #ffffff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prev {
+            background: transparent;
+            color: #d4af37;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: #d4af37;
+        }
+
+        .btn-prev:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #d4af37 0%, #e8c547 100%);
+            color: #000000;
+            border: none;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateX(4px);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+        }
+
+        .transition-screen {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #d4af37;
+            margin-bottom: 40px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .end-screen {
+            line-height: 1.8;
+        }
+
+        .end-message {
+            font-size: 16px;
+            color: #d0d0d0;
+            margin-bottom: 40px;
+        }
+
+        .end-message p {
+            margin-bottom: 24px;
+            line-height: 1.8;
+        }
+
+        .end-message p:first-child {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 32px;
+        }
+
+        .end-highlight {
+            color: #d4af37;
+            font-weight: 700;
+        }
+
+        .signature {
+            font-size: 14px;
+            color: #d4af37;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .debug-box {
+            background: rgba(0, 255, 0, 0.08);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #00ff00;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .debug-box.active {
+            display: block;
+        }
+
+        .debug-box p {
+            margin: 3px 0;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        .info {
+            color: #ffff00;
+        }
+
+        .warning {
+            color: #ff8800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- TELA 1 - ENTRADA -->
+        <div id="entry-screen" class="screen active">
+            <div class="entry-headline">
+                Descubra Onde Você Está Travado
+            </div>
+
+            <div class="entry-subheadline">
+                Em 2 minutos, você vai saber exatamente o que está te impedindo de ganhar dinheiro no digital.
+            </div>
+
+            <form id="entry-form" onsubmit="startQuiz(event)">
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" id="name" class="form-input" placeholder="Como você se chama?" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" id="email" class="form-input" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">WhatsApp</label>
+                    <input type="tel" id="whatsapp" class="form-input" placeholder="(11) 99999-9999" required>
+                </div>
+                <button type="submit" class="btn-start">Quero Meu Diagnóstico</button>
+            </form>
+        </div>
+
+        <!-- TELA 2-7 - PERGUNTAS -->
+        <div id="quiz-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-info" id="progress-text"></div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="question-text" id="question-text"></div>
+            <div class="options" id="options"></div>
+
+            <div class="button-group">
+                <button class="btn btn-prev" onclick="previousQuestion()" id="btn-prev">← Voltar</button>
+                <button class="btn btn-next" onclick="nextQuestion()" id="btn-next">Próximo →</button>
+            </div>
+        </div>
+
+        <!-- TELA 8 - TRANSIÇÃO -->
+        <div id="transition-screen" class="screen">
+            <div class="transition-screen">
+                <div class="loading-text">Analisando suas respostas...</div>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- TELA 9 - ENCERRAMENTO -->
+        <div id="end-screen" class="screen">
+            <div class="end-message">
+                <p>Você chegou até aqui.</p>
+                <p>A maioria das pessoas não chega. Elas fecham a página, voltam pra rotina e convencem a si mesmas de que não é o momento certo.</p>
+                <p><span class="end-highlight">Você não fez isso.</span></p>
+                <p>Isso já diz muito sobre quem você é.</p>
+                <p>Quando estiver pronto — você vai ser o primeiro a saber.</p>
+            </div>
+            <div class="signature">
+                — <span id="end-name"></span>
+            </div>
+            <div id="debug-box" class="debug-box active">
+                <p class="info">🔍 DIAGNOSTIC LOG (FULL):</p>
+                <div id="debug-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://urvreprfnazxjkaxstnh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_27N0Pa5ZYvGqp7enfYQ8Gw_OJLI2dB6';
+
+        let debugLog = [];
+
+        function addDebug(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLog.push({ message: logEntry, type });
+            console.log(logEntry);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugElement = document.getElementById('debug-log');
+            debugElement.innerHTML = debugLog.map(log => `<p class="${log.type}">${log.message}</p>`).join('');
+            // Auto-scroll to bottom
+            debugElement.parentElement.scrollTop = debugElement.parentElement.scrollHeight;
+        }
+
+        const QUESTIONS = [
+            {
+                text: "Qual dessas frases mais representa você hoje?",
+                options: [
+                    "Sou CLT e quero uma renda extra sem largar o emprego",
+                    "Sou CLT e quero no futuro ter coragem de sair",
+                    "Já tentei o digital, não funcionou e desisti",
+                    "Estou pronto para começar mas não sei por onde"
+                ]
+            },
+            {
+                text: "O que te impede de dar o primeiro passo?",
+                options: [
+                    "Não sei por onde começar",
+                    "Tenho medo de investir e perder dinheiro",
+                    "Tenho vergonha do que as pessoas podem falar",
+                    "Acho que não tenho conhecimento suficiente",
+                    "Já tentei antes e não funcionou"
+                ]
+            },
+            {
+                text: "Quanto tempo você consegue dedicar por dia?",
+                options: [
+                    "Menos de 1 hora",
+                    "Entre 1 e 2 horas",
+                    "Mais de 2 horas"
+                ]
+            },
+            {
+                text: "Qual dessas situações mais te incomoda no seu dia a dia?",
+                options: [
+                    "Saber que dependo 100% de uma empresa que pode me demitir amanhã",
+                    "Ver outras pessoas construindo algo próprio enquanto eu fico parado",
+                    "Chegar em casa cansado e sentir que minha vida está acontecendo no lugar errado",
+                    "Não conseguir dar para minha família o que eles merecem"
+                ]
+            },
+            {
+                text: "Se você tivesse um caminho claro e alguém do seu lado, você estaria disposto a dedicar 45 minutos por dia?",
+                options: [
+                    "Sim, estou pronto",
+                    "Sim, mas tenho medo de não conseguir",
+                    "Não tenho certeza ainda"
+                ]
+            },
+            {
+                text: "O que a sua primeira venda digital representaria para você?",
+                options: [
+                    "Prova de que sou capaz",
+                    "O começo da minha independência financeira",
+                    "Segurança para minha família",
+                    "A confirmação de que não preciso depender de ninguém"
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = [];
+        let userName = "";
+        let userEmail = "";
+        let userWhatsapp = "";
+
+        addDebug('✓ Página carregada com sucesso', 'success');
+        addDebug(`Supabase URL: ${SUPABASE_URL}`, 'info');
+        addDebug(`Supabase Key (primeiras 20 chars): ${SUPABASE_KEY.substring(0, 20)}...`, 'info');
+
+        async function testSupabaseConnection() {
+            addDebug('', 'info');
+            addDebug('📡 TESTE 1: Testando conexão com Supabase...', 'info');
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                    }
+                });
+                addDebug(`✓ Conexão com Supabase OK (Status: ${response.status})`, 'success');
+                return true;
+            } catch (error) {
+                addDebug(`❌ Erro de conexão: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testTableStructure() {
+            addDebug('', 'info');
+            addDebug('📋 TESTE 2: Verificando estrutura da tabela...', 'info');
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses?limit=0`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Accept': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    addDebug(`✓ Tabela existe e é acessível`, 'success');
+                    // Try to get column info from headers
+                    const contentRange = response.headers.get('content-range');
+                    addDebug(`Content-Range: ${contentRange}`, 'info');
+                    return true;
+                } else if (response.status === 401) {
+                    addDebug(`❌ Erro 401: Não autorizado. Verifique a API Key`, 'error');
+                    return false;
+                } else if (response.status === 404) {
+                    addDebug(`❌ Erro 404: Tabela não encontrada`, 'error');
+                    return false;
+                } else {
+                    const error = await response.text();
+                    addDebug(`❌ Erro ${response.status}: ${error}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                addDebug(`❌ Erro ao testar tabela: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function startQuiz(e) {
+            e.preventDefault();
+            userName = document.getElementById("name").value;
+            userEmail = document.getElementById("email").value;
+            userWhatsapp = document.getElementById("whatsapp").value;
+
+            addDebug(`✓ Quiz iniciado`, 'success');
+            addDebug(`Nome: ${userName}`, 'info');
+            addDebug(`Email: ${userEmail}`, 'info');
+            addDebug(`WhatsApp: ${userWhatsapp}`, 'info');
+
+            showScreen("quiz-screen");
+            renderQuestion();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+            document.getElementById(screenId).classList.add("active");
+        }
+
+        function renderQuestion() {
+            const question = QUESTIONS[currentQuestion];
+            const totalQuestions = QUESTIONS.length;
+            const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+
+            document.getElementById("question-text").textContent = question.text;
+            document.getElementById("progress-text").textContent = `${currentQuestion + 1} de ${totalQuestions}`;
+            document.getElementById("progress-fill").style.width = progress + "%";
+
+            const optionsHtml = question.options.map((option, idx) => `
+                <button class="option ${answers[currentQuestion] === idx ? "selected" : ""}"
+                        onclick="selectOption(${idx})">
+                    ${option}
+                </button>
+            `).join("");
+
+            document.getElementById("options").innerHTML = optionsHtml;
+
+            document.getElementById("btn-prev").disabled = currentQuestion === 0;
+            document.getElementById("btn-next").textContent =
+                currentQuestion === totalQuestions - 1 ? "Ver Resultado" : "Próximo";
+        }
+
+        function selectOption(idx) {
+            answers[currentQuestion] = idx;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] !== undefined) {
+                if (currentQuestion < QUESTIONS.length - 1) {
+                    currentQuestion++;
+                    renderQuestion();
+                } else {
+                    showTransition();
+                }
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function showTransition() {
+            showScreen("transition-screen");
+            setTimeout(() => {
+                showEnd();
+            }, 3000);
+        }
+
+        async function showEnd() {
+            document.getElementById("end-name").textContent = userName;
+            showScreen("end-screen");
+
+            addDebug('', 'info');
+            addDebug('═══════════════════════════════════════════', 'info');
+            addDebug('PROCESSO DE SALVAR DADOS', 'info');
+            addDebug('═══════════════════════════════════════════', 'info');
+
+            // Test connection first
+            const connected = await testSupabaseConnection();
+            if (!connected) {
+                addDebug('⚠️  Abortando: sem conexão com Supabase', 'error');
+                return;
+            }
+
+            // Test table structure
+            const tableOk = await testTableStructure();
+            if (!tableOk) {
+                addDebug('⚠️  Abortando: tabela não acessível', 'error');
+                return;
+            }
+
+            addDebug('', 'info');
+            addDebug('📤 TESTE 3: Enviando dados para Supabase...', 'info');
+
+            const payload = {
+                name: userName,
+                email: userEmail,
+                whatsapp: userWhatsapp,
+                answers: answers
+            };
+
+            addDebug(`Dados a enviar (JSON):`, 'info');
+            addDebug(JSON.stringify(payload, null, 2), 'info');
+
+            try {
+                addDebug('', 'info');
+                addDebug('Enviando POST para:', 'info');
+                addDebug(`${SUPABASE_URL}/rest/v1/quiz_responses`, 'info');
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_responses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                addDebug('', 'info');
+                addDebug(`📊 Status HTTP: ${response.status}`, 'info');
+                addDebug(`Content-Type: ${response.headers.get('content-type')}`, 'info');
+
+                const responseText = await response.text();
+
+                if (response.ok) {
+                    addDebug(`✅ SUCESSO! Status 200 OK`, 'success');
+                    try {
+                        const data = JSON.parse(responseText);
+                        addDebug(`Resposta: ${JSON.stringify(data, null, 2)}`, 'success');
+                    } catch (e) {
+                        addDebug(`Resposta (texto): ${responseText}`, 'success');
+                    }
+                } else {
+                    addDebug(`❌ ERRO HTTP ${response.status}`, 'error');
+                    addDebug(`Mensagem: ${responseText}`, 'error');
+
+                    // Parse error details
+                    if (response.status === 401) {
+                        addDebug('❌ PROBLEMA: Falha de autenticação', 'error');
+                        addDebug('   - Verifique se a API Key está correta', 'warning');
+                        addDebug('   - Verifique se RLS está realmente desativado', 'warning');
+                    } else if (response.status === 403) {
+                        addDebug('❌ PROBLEMA: Acesso negado (possível RLS ativa)', 'error');
+                        addDebug('   - Execute no Supabase console:', 'warning');
+                        addDebug('   - ALTER TABLE public.quiz_responses DISABLE ROW LEVEL SECURITY;', 'warning');
+                    } else if (response.status === 404) {
+                        addDebug('❌ PROBLEMA: Tabela não encontrada', 'error');
+                        addDebug('   - Verifique se a tabela quiz_responses existe', 'warning');
+                    } else if (response.status === 400) {
+                        addDebug('❌ PROBLEMA: Dados inválidos', 'error');
+                        addDebug('   - Verifique os tipos de coluna na tabela', 'warning');
+                    }
+                }
+            } catch (error) {
+                addDebug(`❌ ERRO NA REQUISIÇÃO: ${error.message}`, 'error');
+                addDebug(`Stack: ${error.stack}`, 'error');
+            }
+
+            addDebug('', 'info');
+            addDebug('═══════════════════════════════════════════', 'info');
+            addDebug('FIM DO DIAGNÓSTICO', 'info');
+            addDebug('═══════════════════════════════════════════', 'info');
+        }
+    </script>
+</body>
+</html>
